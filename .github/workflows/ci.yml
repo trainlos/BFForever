@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           7z a ./BFForever-win-x64.zip $(find ./published-win-x64/*) ./LICENSE ./README.md ./THIRDPARTY
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: BFForever-win-x64.zip
           path: ./BFForever-win-x64.zip
