@@ -308,8 +308,8 @@ namespace BFForever.MIDI
                     // Should be increments of 0.25f
                     int value = (int)((entry.Speed - 1.0f) / 0.25f);
                     
-                    track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, VOX_SPREAD, 100 + value));
-                    track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, VOX_SPREAD, 100 + value));
+                    track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, VOX_SPREAD, 100));
+                    track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, VOX_SPREAD, 100));
                 }
             }
 
@@ -356,8 +356,8 @@ namespace BFForever.MIDI
                     int stringNumber = entry.StringNumber - 1;
 
                     // Playable notes
-                    track.Add(new NoteEvent(start, 1 + (int)entry.Finger, MidiCommandCode.NoteOn, TAB_NOTE_START - stringNumber, 100 + entry.FretNumber));
-                    track.Add(new NoteEvent(end, 1 + (int)entry.Finger, MidiCommandCode.NoteOff, TAB_NOTE_START - stringNumber, 100 + entry.FretNumber));
+                    track.Add(new NoteEvent(start, 1 + (int)entry.Finger, MidiCommandCode.NoteOn, TAB_NOTE_START - stringNumber, 100));
+                    track.Add(new NoteEvent(end, 1 + (int)entry.Finger, MidiCommandCode.NoteOff, TAB_NOTE_START - stringNumber, 100));
 
                     // Note type (Modifier)
                     if (entry.NoteType > 0)
@@ -379,8 +379,8 @@ namespace BFForever.MIDI
                         // Should be increments of 0.25f
                         int value = (int)(entry.BendStrength / 0.25f);
 
-                        track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, TAB_BEND_STRENGTH_START - stringNumber, 100 + value));
-                        track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, TAB_BEND_STRENGTH_START - stringNumber, 100 + value));
+                        track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, TAB_BEND_STRENGTH_START - stringNumber, 100));
+                        track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, TAB_BEND_STRENGTH_START - stringNumber, 100));
                     }
 
                     // Vibrato type
@@ -476,8 +476,8 @@ namespace BFForever.MIDI
                     // Should be increments of 0.25f
                     int value = (int)((entry.Speed - 1.0f) / 0.25f);
 
-                    track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, SPREAD, 100 + value));
-                    track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, SPREAD, 100 + value));
+                    track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, SPREAD, 100));
+                    track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, SPREAD, 100));
                 }
             }
 
