@@ -7,24 +7,26 @@ jobs:
     runs-on: windows-latest
     name: .NET Application
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
       - name: Publish applications
         shell: bash
         run: |
-          dotnet publish ./Celt2Wav/Celt2Wav.csproj -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
-          dotnet publish ./Rif2Mid/Rif2Mid.csproj -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
-          dotnet publish ./RiffExplorer/RiffExplorer.csproj -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
-          dotnet publish ./SongFuse/SongFuse.csproj -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
-          dotnet publish ./SongFuseCLI/SongFuseCLI.csproj -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
+          dotnet publish ./Celt2Wav/Celt2Wav.csproj           -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
+          dotnet publish ./Rif2Mid/Rif2Mid.csproj             -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
+          dotnet publish ./RiffExplorer/RiffExplorer.csproj   -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
+          dotnet publish ./SongFuse/SongFuse.csproj           -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
+          dotnet publish ./SongFuseCLI/SongFuseCLI.csproj     -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
+          dotnet publish ./BFCatalogDump/BFCatalogDump.csproj -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
+          dotnet publish ./Xpr2Img/Xpr2Img.csproj             -c=Release --self-contained=false -r=win-x64 -o="./published-win-x64"
       - name: Archive projects
         shell: bash
         run: |
           7z a ./BFForever-win-x64.zip $(find ./published-win-x64/*) ./LICENSE ./README.md ./THIRDPARTY
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: BFForever-win-x64.zip
           path: ./BFForever-win-x64.zip

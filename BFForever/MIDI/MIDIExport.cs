@@ -13,7 +13,7 @@ namespace BFForever.MIDI
         private const int DELTA_TICKS_PER_QUARTER = 480;
         private readonly List<ZObject> _objects;
         private readonly List<TempoIndex> _tempoIdx = new List<TempoIndex>();
-        
+
         public MIDIExport(List<ZObject> objects)
         {
             _objects = objects;
@@ -25,7 +25,7 @@ namespace BFForever.MIDI
 
             Song song = _objects.First(x => x is Song) as Song;
             var instruments = song.InstrumentPaths.Select(x => _objects.First(y => y.FilePath == x) as Instrument).ToList();
-            
+
             List<ZObject> GetInstrumentTracks(string type, string difficulty)
             {
                 var insTracks = instruments.FirstOrDefault(x => x.InstrumentType == type && x.Difficulty == difficulty);
@@ -42,7 +42,7 @@ namespace BFForever.MIDI
 
             // Tempo track
             mid.AddTrack(CreateTempoTrack(tempo, ts));
-            
+
             // Bass tracks
             var track = CreateTabTrack(GetInstrumentTracks("bass", "jam"), "PART BASS_E");
             if (track.Count > 2) mid.AddTrack(track);
@@ -89,7 +89,7 @@ namespace BFForever.MIDI
             TempoIndex currentTempo = _tempoIdx.First();
 
             // Finds last tempo change before event
-            foreach(TempoIndex idx in _tempoIdx.Skip(1))
+            foreach (TempoIndex idx in _tempoIdx.Skip(1))
             {
                 if (idx.RealTime <= startTime) currentTempo = idx;
                 else break;
@@ -131,7 +131,7 @@ namespace BFForever.MIDI
             {
                 double difference = startTime - currentTempo.RealTime;
                 long absoluteTicks = currentTempo.AbsoluteTime + (1000L * (long)difference * DELTA_TICKS_PER_QUARTER) / currentTempo.MicroPerQuarter;
-                
+
                 //int q = DELTA_TICKS_PER_QUARTER / 32; // 1/128th quantization
                 //if (absoluteTicks % q != 0) absoluteTicks += q - (absoluteTicks % q);
 
@@ -161,7 +161,7 @@ namespace BFForever.MIDI
                     RealTime = firstTempo.Start,
                     BPM = firstTempo.BPM
                 };
-                
+
                 track.Add(new NAudio.Midi.TempoEvent(idxEntry.MicroPerQuarter, idxEntry.AbsoluteTime));
                 _tempoIdx.Add(idxEntry);
 
@@ -202,7 +202,7 @@ namespace BFForever.MIDI
 
             List<MidiEvent> track = new List<MidiEvent>();
             track.Add(new NAudio.Midi.TextEvent("EVENTS", MetaEventType.SequenceTrackName, 0));
-            
+
             if (ev != null)
             {
                 foreach (var entry in ev.Events)
@@ -243,8 +243,8 @@ namespace BFForever.MIDI
         {
             List<MidiEvent> track = new List<MidiEvent>();
             track.Add(new NAudio.Midi.TextEvent("BEAT", MetaEventType.SequenceTrackName, 0));
-            
-            foreach(MeasureEntry meEntry in measure.Events)
+
+            foreach (MeasureEntry meEntry in measure.Events)
             {
                 long start = GetAbsoluteTime(meEntry.Start);
                 int length = DELTA_TICKS_PER_QUARTER / 4; // 1/16th note
@@ -263,7 +263,7 @@ namespace BFForever.MIDI
         {
             const int VOX_SPREAD = 124;
             const int VOX_PUSH_PHRASE = 107;
-            
+
             List<MidiEvent> track = new List<MidiEvent>();
             track.Add(new NAudio.Midi.TextEvent("PART VOCALS", MetaEventType.SequenceTrackName, 0));
 
@@ -271,7 +271,7 @@ namespace BFForever.MIDI
             Vox vox = voxTracks.FirstOrDefault(x => x is Vox) as Vox;
             if (vox != null)
             {
-                foreach(VoxEntry entry in vox.Events)
+                foreach (VoxEntry entry in vox.Events)
                 {
                     long start = GetAbsoluteTime(entry.Start);
                     long end = GetAbsoluteTime(entry.End);
@@ -290,7 +290,7 @@ namespace BFForever.MIDI
                 {
                     long start = GetAbsoluteTime(entry.Start);
                     long end = GetAbsoluteTime(entry.End);
-                    
+
                     track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, VOX_PUSH_PHRASE, 100));
                     track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, VOX_PUSH_PHRASE, 100));
                 }
@@ -307,7 +307,7 @@ namespace BFForever.MIDI
 
                     // Should be increments of 0.25f
                     int value = (int)((entry.Speed - 1.0f) / 0.25f);
-                    
+
                     track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, VOX_SPREAD, 100 + value));
                     track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, VOX_SPREAD, 100 + value));
                 }
@@ -341,7 +341,7 @@ namespace BFForever.MIDI
             const int TAB_BEND_START = 23;
             const int TAB_TYPE_START = 15;
             const int TAB_NOTE_START = 7;
-            
+
             List<MidiEvent> track = new List<MidiEvent>();
             track.Add(new NAudio.Midi.TextEvent(trackName, MetaEventType.SequenceTrackName, 0));
             if (tabTracks.Count <= 0) return track;
@@ -356,8 +356,11 @@ namespace BFForever.MIDI
                     int stringNumber = entry.StringNumber - 1;
 
                     // Playable notes
-                    track.Add(new NoteEvent(start, 1 + (int)entry.Finger, MidiCommandCode.NoteOn, TAB_NOTE_START - stringNumber, 100 + entry.FretNumber));
-                    track.Add(new NoteEvent(end, 1 + (int)entry.Finger, MidiCommandCode.NoteOff, TAB_NOTE_START - stringNumber, 100 + entry.FretNumber));
+                    int fretVel = entry.FretNumber;
+                    if (fretVel > 27) fretVel = 27;  // clamp so 100+fret stays <= 127
+
+                    track.Add(new NoteEvent(start, 1 + (int)entry.Finger, MidiCommandCode.NoteOn, TAB_NOTE_START - stringNumber, 100 + fretVel));
+                    track.Add(new NoteEvent(end, 1 + (int)entry.Finger, MidiCommandCode.NoteOff, TAB_NOTE_START - stringNumber, 100 + fretVel));
 
                     // Note type (Modifier)
                     if (entry.NoteType > 0)
@@ -378,6 +381,7 @@ namespace BFForever.MIDI
                     {
                         // Should be increments of 0.25f
                         int value = (int)(entry.BendStrength / 0.25f);
+                        if (value > 27) value = 27;  // clamp so 100+value stays <= 127
 
                         track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, TAB_BEND_STRENGTH_START - stringNumber, 100 + value));
                         track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, TAB_BEND_STRENGTH_START - stringNumber, 100 + value));
@@ -419,7 +423,7 @@ namespace BFForever.MIDI
                     }
                 }
             }
-            
+
             AudioEffect aEffect = tabTracks.FirstOrDefault(x => x is AudioEffect) as AudioEffect;
             if (aEffect != null)
             {
@@ -459,12 +463,12 @@ namespace BFForever.MIDI
                     if (entry.EventName.Value != "Phrase")
                         // Should always be a phrase but idk...
                         track.Add(new NAudio.Midi.TextEvent($"e \"{entry.EventName}\"", MetaEventType.TextEvent, start));
-                    
+
                     track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, EVENT_PHRASE, 100));
                     track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, EVENT_PHRASE, 100));
                 }
             }
-            
+
             Spread spread = tabTracks.FirstOrDefault(x => x is Spread) as Spread;
             if (spread != null)
             {
@@ -488,7 +492,7 @@ namespace BFForever.MIDI
                 {
                     long start = GetAbsoluteTime(entry.Start);
                     long end = GetAbsoluteTime(entry.End);
-                    
+
                     track.Add(new NoteEvent(start, 1, MidiCommandCode.NoteOn, WHAMMY, 100));
                     track.Add(new NoteEvent(end, 1, MidiCommandCode.NoteOff, WHAMMY, 100));
                 }
